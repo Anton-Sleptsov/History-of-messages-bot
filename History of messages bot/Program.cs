@@ -13,8 +13,18 @@ namespace History_of_messages_bot
         {
             _client = new TelegramBotClient(_token);
             _client.StartReceiving();
+            _client.OnMessage += OnMessageHandler;
             Console.ReadLine();
             _client.StartReceiving();
+        }
+
+        private static void OnMessageHandler(object? sender, MessageEventArgs e)
+        {
+            Message message = e.Message;
+            if (message != null)
+            {
+
+            }
         }
     }
 }
