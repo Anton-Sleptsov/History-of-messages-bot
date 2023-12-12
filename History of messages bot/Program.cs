@@ -18,10 +18,10 @@ namespace History_of_messages_bot
             _client.StartReceiving();
         }
 
-        private static void OnMessageHandler(object? sender, MessageEventArgs e)
+        private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            if (message != null && message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Private)
+            if (message.Text != null && message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Private)
             {
                 var chatId = message.Chat.Id;
                 string text = message.Text;
@@ -31,6 +31,10 @@ namespace History_of_messages_bot
 
                 Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{title}\" пришло сообщение от пользователя {userName}, " +
                     $" вот его текст \"{text}\"");
+            }
+            else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+            {
+                await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
             }
         }
     }
