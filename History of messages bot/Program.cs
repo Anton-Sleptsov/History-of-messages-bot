@@ -23,7 +23,21 @@ namespace History_of_messages_bot
             Message message = e.Message;
             if (message != null)
             {
+                var chatId = message.Chat.Id;
+                string text = message.Text;
 
+                if(message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                {
+                    string userName = message.Chat.Username;
+                    Console.WriteLine($"Из чата {chatId} пришло сообщение от \"{userName}\"" +
+                        $" вот его текст \"{text}\"");
+                }
+                else
+                {
+                    string title = message.Chat.Title;
+                    Console.WriteLine($"Из чата {chatId} с названием \"{title}\" пришло сообщение, " +
+                        $" вот его текст \"{text}\"");
+                }
             }
         }
     }
