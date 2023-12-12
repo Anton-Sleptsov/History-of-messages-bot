@@ -8,8 +8,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Telegram.Bot" Version="16.0.2" />
-  </ItemGroup>
-
 </Project>
