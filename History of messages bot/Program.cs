@@ -21,23 +21,16 @@ namespace History_of_messages_bot
         private static void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            if (message != null)
+            if (message != null && message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Private)
             {
                 var chatId = message.Chat.Id;
                 string text = message.Text;
+                string userName = message.From.Username;
+                string title = message.Chat.Title;
+                DateTime date = message.Date;
 
-                if(message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                {
-                    string userName = message.Chat.Username;
-                    Console.WriteLine($"Из чата {chatId} пришло сообщение от \"{userName}\"" +
-                        $" вот его текст \"{text}\"");
-                }
-                else
-                {
-                    string title = message.Chat.Title;
-                    Console.WriteLine($"Из чата {chatId} с названием \"{title}\" пришло сообщение, " +
-                        $" вот его текст \"{text}\"");
-                }
+                Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{title}\" пришло сообщение от пользователя {userName}, " +
+                    $" вот его текст \"{text}\"");
             }
         }
     }
