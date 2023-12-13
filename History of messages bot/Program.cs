@@ -20,10 +20,34 @@ namespace History_of_messages_bot
         static void Main(string[] args)
         {
             _client = new TelegramBotClient(_token);
-            _client.StartReceiving();
+
             _client.OnMessage += OnMessageHandler;
-            Console.ReadLine();
             _client.StartReceiving();
+
+            // Запускаем поток для вывода количества записей каждый час
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    DisplayNumberOfRecords();
+                    Thread.Sleep(10000);
+                }
+            }, TaskCreationOptions.LongRunning);
+
+            Console.ReadLine();
+        }    
+
+        private static async void DisplayNumberOfRecords()
+        {
+            try
+            {
+                int count = GetNumberOfRecords();
+                await _client.SendTextMessageAsync(_chatId, $"Количество записей в таблице на данный момент - \"{count}\"");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка вывода количества записей: {ex.Message}");
+            }
         }
 
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
