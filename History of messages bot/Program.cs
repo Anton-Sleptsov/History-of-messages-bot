@@ -3,7 +3,6 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace History_of_messages_bot
 {
