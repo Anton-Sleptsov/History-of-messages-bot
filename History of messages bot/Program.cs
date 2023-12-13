@@ -10,7 +10,7 @@ namespace History_of_messages_bot
     {
         private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0";
         private static TelegramBotClient _client;
-        private static readonly long _chatId = -1001256335079;
+        private static readonly long _chatId = -1002129394383;
 
         private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
