@@ -7,9 +7,9 @@ namespace History_of_messages_bot
 {
     internal class Program
     {
-        private static string _token { get; set; } = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0";
+        private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0";
         private static TelegramBotClient _client;
-        private static long _chatId = -1002129394383;
+        private static readonly long _chatId = -1002129394383;
 
        private static MySqlConnection connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
@@ -41,6 +41,7 @@ namespace History_of_messages_bot
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
+                Console.WriteLine(message.Text);
                 await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
             }
             else if (message.Chat.Id != _chatId)
