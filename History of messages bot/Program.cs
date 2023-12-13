@@ -17,6 +17,8 @@ namespace History_of_messages_bot
 
         static void Main(string[] args)
         {
+            Console.OutputEncoding = System.Text.Encoding.Unicode;
+
             _client = new TelegramBotClient(_token);
 
             _client.OnMessage += OnMessageHandler;
