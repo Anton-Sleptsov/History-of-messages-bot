@@ -2,6 +2,7 @@
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace History_of_messages_bot
 {
@@ -11,8 +12,10 @@ namespace History_of_messages_bot
         private static TelegramBotClient _client;
         private static readonly long _chatId = -1002129394383;
 
-       private static MySqlConnection connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
+        private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
+
+        private static string _testButton = "Узнать количество записей";
 
         static void Main(string[] args)
         {
@@ -26,18 +29,27 @@ namespace History_of_messages_bot
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            if (message.Text != null && message.Chat.Type != Telegram.Bot.Types.Enums.ChatType.Private && message.Chat.Id == _chatId)
+            if (message.Text != null && message.Chat.Id == _chatId)
             {
-                var chatId = message.Chat.Id;
-                string text = message.Text;
-                string userName = message.From.Username;
-                string title = message.Chat.Title;
-                DateTime date = message.Date;
+                await _client.SendTextMessageAsync(message.Chat.Id, $"Проверка работоспособности, нажмите \"{_testButton}\"", replyMarkup: GetButton());
+                if (message.Text != _testButton)
+                {
+                    var chatId = message.Chat.Id;
+                    string text = message.Text;
+                    string userName = message.From.Username;
+                    string title = message.Chat.Title;
+                    DateTime date = message.Date;
 
-                Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{title}\" пришло сообщение от пользователя {userName}, " +
-                    $" вот его текст \"{text}\"");
+                    Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{title}\" пришло сообщение от пользователя {userName}, " +
+                        $" вот его текст \"{text}\"");
 
-                SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else 
+                {
+                    int count = GetNumberOfRecords();
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"Количество записей в таблице на данный момент - \"{count}\"");
+                }
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
@@ -52,16 +64,17 @@ namespace History_of_messages_bot
             }
         }
 
+
         private static void SaveMessageToDatabase(string text, string userName, DateTime date)
         {
 
             try
             {
-                connection.Open();
+                _connection.Open();
 
                 string query = "INSERT INTO History_in_group (Text, UserName, Date) VALUES (@Text, @UserName, @Date)";
 
-                using (MySqlCommand command = new MySqlCommand(query, connection))
+                using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
                     command.Parameters.AddWithValue("@Text", text);
                     command.Parameters.AddWithValue("@UserName", userName);
@@ -70,14 +83,46 @@ namespace History_of_messages_bot
                     command.ExecuteNonQuery();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("При записи в базу что-то пошло нет так, а именно " + ex.Message);
             }
             finally
             {
-                connection.Close();
+                _connection.Close();
             }
+      
+        }
+
+        private static int GetNumberOfRecords()
+        {
+            int count = 0;
+
+            try
+            {
+                _connection.Open();
+
+                string query = $"SELECT COUNT(*) FROM History_in_group";
+
+                using (MySqlCommand command = new MySqlCommand(query, _connection))
+                {
+                    count = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+            finally
+            {
+                _connection.Close();
+            }             
+            return count;
+        }
+
+        private static IReplyMarkup GetButton()
+        {
+            return new ReplyKeyboardMarkup
+            {
+                Keyboard = new List<List<KeyboardButton>>
+                { new List<KeyboardButton> {new KeyboardButton { Text = _testButton } } }
+            };
         }
     }
 }
