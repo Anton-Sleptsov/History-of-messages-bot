@@ -60,13 +60,13 @@ namespace History_of_messages_bot
             if (message.Text != null)
             {
                 string chatIitle = message.Chat.Title ?? "Личные сообщения";
-                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {message.From.Username}, " +
+                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
                                   $" вот его текст \"{message.Text}\"");
 
                 if (message.Chat.Id == _chatId)
                 {
-                    string text = message.Text;
-                    string userName = message.From.Username;
+                    string text = message.Text;                   
                     DateTime date = message.Date;
 
                     SaveMessageToDatabase(text, userName, date);
