@@ -3,6 +3,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Types.ReplyMarkups;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace History_of_messages_bot
 {
@@ -29,38 +30,39 @@ namespace History_of_messages_bot
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            if (message.Text != null && message.Chat.Id == _chatId)
+            if (message.Text != null)
             {
-                await _client.SendTextMessageAsync(message.Chat.Id, $"Проверка работоспособности, нажмите \"{_testButton}\"", replyMarkup: GetButton());
-                if (message.Text != _testButton)
-                {
-                    var chatId = message.Chat.Id;
-                    string text = message.Text;
-                    string userName = message.From.Username;
-                    string title = message.Chat.Title;
-                    DateTime date = message.Date;
+                string chatIitle = message.Chat.Title ?? "Личные сообщения";
+                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {message.From.Username}, " +
+                                  $" вот его текст \"{message.Text}\"");
 
-                    Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{title}\" пришло сообщение от пользователя {userName}, " +
-                        $" вот его текст \"{text}\"");
-
-                    SaveMessageToDatabase(text, userName, date);
-                }
-                else 
+                if (message.Chat.Id == _chatId)
                 {
-                    int count = GetNumberOfRecords();
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"Количество записей в таблице на данный момент - \"{count}\"");
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"Проверка работоспособности, нажмите \"{_testButton}\"", replyMarkup: GetButton());
+                    if (message.Text != _testButton)
+                    {
+                        string text = message.Text;
+                        string userName = message.From.Username;
+                        DateTime date = message.Date;
+
+                        SaveMessageToDatabase(text, userName, date);
+                    }
+                    else
+                    {
+                        int count = GetNumberOfRecords();
+                        await _client.SendTextMessageAsync(message.Chat.Id, $"Количество записей в таблице на данный момент - \"{count}\"");
+                    }
                 }
-            }
-            else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-            {
-                Console.WriteLine(message.Text);
-                await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
-            }
-            else if (message.Chat.Id != _chatId)
-            {
-                await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
-                    $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
-                    $"\nУдалите его из группы");
+                else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                {
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
+                }
+                else if (message.Chat.Id != _chatId)
+                {
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
+                        $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
+                        $"\nУдалите его из группы");
+                }
             }
         }
 
@@ -91,7 +93,7 @@ namespace History_of_messages_bot
             {
                 _connection.Close();
             }
-      
+
         }
 
         private static int GetNumberOfRecords()
@@ -112,7 +114,7 @@ namespace History_of_messages_bot
             finally
             {
                 _connection.Close();
-            }             
+            }
             return count;
         }
 
