@@ -89,7 +89,7 @@ namespace History_of_messages_bot
             {
                 string chatIitle = message.Chat.Title ?? "Личные сообщения";
                 string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
-                string text = $"Стикер \"{message.Sticker.SetName}\"";
+                string text = $"Стикер \"{message.Sticker.Emoji}\"";
                 Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
                                   $" вот его текст \"{text}\"");
 
