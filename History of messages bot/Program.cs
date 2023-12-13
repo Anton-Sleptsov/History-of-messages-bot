@@ -85,6 +85,26 @@ namespace History_of_messages_bot
                         $"\nУдалите его из группы");
                 }
             }
+            else if (message.Sticker != null)
+            {
+                string chatIitle = message.Chat.Title ?? "Личные сообщения";
+                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+                string text = $"Стикер \"{message.Sticker.SetName}\"";
+                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
+                                  $" вот его текст \"{text}\"");
+
+                if (message.Chat.Id == _chatId)
+                {
+                    DateTime date = message.Date;
+
+                    SaveMessageToDatabase(text, userName, date);
+
+                }
+                else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                {
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
+                }
+            }
         }
 
 
