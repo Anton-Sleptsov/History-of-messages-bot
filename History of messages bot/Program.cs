@@ -10,12 +10,10 @@ namespace History_of_messages_bot
     {
         private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0";
         private static TelegramBotClient _client;
-        private static readonly long _chatId = -1002129394383;
+        private static readonly long _chatId = -1001256335079;
 
         private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
-
-        private static string _testButton = "Узнать количество записей";
 
         static void Main(string[] args)
         {
@@ -30,23 +28,29 @@ namespace History_of_messages_bot
                 while (true)
                 {
                     DisplayNumberOfRecords();
-                    Thread.Sleep(10000);
+                    Thread.Sleep(1000 * 60 * 60);
                 }
             }, TaskCreationOptions.LongRunning);
 
             Console.ReadLine();
-        }    
+        }
 
         private static async void DisplayNumberOfRecords()
         {
             try
             {
                 int count = GetNumberOfRecords();
-                await _client.SendTextMessageAsync(_chatId, $"Количество записей в таблице на данный момент - \"{count}\"");
+                await _client.SendTextMessageAsync(_chatId, $"Количество записей в базе на данный момент - \"{count}\"");
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(DateTime.Now + " Выведено количество записей " + count);
+                Console.ForegroundColor = ConsoleColor.White;
             }
             catch (Exception ex)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Ошибка вывода количества записей: {ex.Message}");
+                Console.ForegroundColor = ConsoleColor.White;
             }
         }
 
@@ -61,20 +65,12 @@ namespace History_of_messages_bot
 
                 if (message.Chat.Id == _chatId)
                 {
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"Проверка работоспособности, нажмите \"{_testButton}\"", replyMarkup: GetButton());
-                    if (message.Text != _testButton)
-                    {
-                        string text = message.Text;
-                        string userName = message.From.Username;
-                        DateTime date = message.Date;
+                    string text = message.Text;
+                    string userName = message.From.Username;
+                    DateTime date = message.Date;
 
-                        SaveMessageToDatabase(text, userName, date);
-                    }
-                    else
-                    {
-                        int count = GetNumberOfRecords();
-                        await _client.SendTextMessageAsync(message.Chat.Id, $"Количество записей в таблице на данный момент - \"{count}\"");
-                    }
+                    SaveMessageToDatabase(text, userName, date);
+
                 }
                 else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
                 {
@@ -107,21 +103,26 @@ namespace History_of_messages_bot
 
                     command.ExecuteNonQuery();
                 }
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine(DateTime.Now + " Запись добавлена в базу");
+                Console.ForegroundColor = ConsoleColor.White;
             }
             catch (Exception ex)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("При записи в базу что-то пошло нет так, а именно " + ex.Message);
+                Console.ForegroundColor = ConsoleColor.White;
             }
             finally
             {
                 _connection.Close();
             }
-
         }
 
         private static int GetNumberOfRecords()
         {
-            int count = 0;
+            int count = -1;
 
             try
             {
@@ -139,15 +140,6 @@ namespace History_of_messages_bot
                 _connection.Close();
             }
             return count;
-        }
-
-        private static IReplyMarkup GetButton()
-        {
-            return new ReplyKeyboardMarkup
-            {
-                Keyboard = new List<List<KeyboardButton>>
-                { new List<KeyboardButton> {new KeyboardButton { Text = _testButton } } }
-            };
         }
     }
 }
