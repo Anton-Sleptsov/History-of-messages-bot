@@ -8,9 +8,9 @@ namespace History_of_messages_bot
 {
     internal class Program
     {
-        private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0";
+        private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0"; //Бот @HistoryOfMessages_bot
         private static TelegramBotClient _client;
-        private static readonly long _chatId = -1002129394383;
+        private static readonly long _chatId = -1002129394383; //Чат, в котором бот будет работать
 
         private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
@@ -30,7 +30,7 @@ namespace History_of_messages_bot
                 while (true)
                 {
                     DisplayNumberOfRecords();
-                    Thread.Sleep(1000 * 60 * 60);
+                    Thread.Sleep(1000 * 60 * 5);
                 }
             }, TaskCreationOptions.LongRunning);
 
@@ -59,54 +59,72 @@ namespace History_of_messages_bot
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            if (message.Text != null)
+            if (message.Chat.Id == _chatId)
             {
-                string chatIitle = message.Chat.Title ?? "Личные сообщения";
+                DateTime date = message.Date;
+                string groupTitle = message.Chat.Title;
                 string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
-                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
-                                  $" вот его текст \"{message.Text}\"");
 
-                if (message.Chat.Id == _chatId)
-                {
-                    string text = message.Text;                   
-                    DateTime date = message.Date;
+                if (message.Text != null)
+                {                  
+                    string text = message.Text;
 
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
+                } 
+                else if (message.Sticker != null)
+                {
+                    string text = $"Стикер \"{message.Sticker.Emoji}\"";
 
-                }
-                else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }              
+            }
+            else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+            {
+                if (message.Text != null)
                 {
+                    DateTime date = message.Date;
+                    long chatId = message.Chat.Id;
+                    string chatTitle = "Личные сообщения";
+                    string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+
                     await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
-                }
-                else if (message.Chat.Id != _chatId)
-                {
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
-                        $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
-                        $"\nУдалите его из группы");
+                    MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
                 }
             }
-            else if (message.Sticker != null)
+            else
             {
-                string chatIitle = message.Chat.Title ?? "Личные сообщения";
-                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
-                string text = $"Стикер \"{message.Sticker.Emoji}\"";
-                Console.WriteLine($"{message.Date} Из чата номер {message.Chat.Id} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
-                                  $" вот его текст \"{text}\"");
-
-                if (message.Chat.Id == _chatId)
+                if (message.Text != null)
                 {
                     DateTime date = message.Date;
+                    long chatId = message.Chat.Id;
+                    string chatTitle = message.Chat.Title;
+                    string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
 
-                    SaveMessageToDatabase(text, userName, date);
-
-                }
-                else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                {
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
-                }
+                    await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
+                    $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
+                    $"\nУдалите его из группы");
+                    MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
+                }               
             }
         }
 
+        private static void MakeLoggingIncomingMessages(DateTime date ,long chatId, string chatIitle, string userName)
+        {
+            if (chatIitle == "Личные сообщения")
+                Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}," +
+                                  $" была отправлена просьба добавить бота в чат");
+            else
+                Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}," +
+                                  $" была отправлена ссылка на гитхаб");
+        }
+
+        private static void MakeLoggingIncomingMessages(DateTime date, string chatIitle, string userName, string text)
+        {
+            Console.WriteLine($"{date} Из рабочего чата с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
+                  $" вот его текст \"{text}\"");
+        }
 
         private static void SaveMessageToDatabase(string text, string userName, DateTime date)
         {
