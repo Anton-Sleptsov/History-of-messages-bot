@@ -66,15 +66,30 @@ namespace History_of_messages_bot
                 string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
 
                 if (message.Text != null)
-                {                  
+                {
                     string text = message.Text;
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
-                } 
+                }
                 else if (message.Sticker != null)
                 {
                     string text = $"Стикер \"{message.Sticker.Emoji}\"";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else if (message.Photo != null)
+                { 
+                    string text = message.Caption != null ? $"Фоторафия с текстом \"{message.Caption}\"" : "Фотография";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else if (message.Document != null)
+                {
+                    string document = message.Document.FileName ?? message.Document.FileId;
+                    string text = $"Документ \"{document}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
@@ -95,38 +110,56 @@ namespace History_of_messages_bot
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
                 }
+                else if (message.Voice != null)
+                {
+                    string text = $"Голосовое сообщение длительностью: {message.Voice.Duration} сек.";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else if (message.VideoNote != null)
+                {
+                    string text = $"Кружочек длительностью: {message.VideoNote.Duration} сек.";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else
+                {
+                    string text = $"Сообщение с неизвестным типом, а именно \"{message.Type}\"";
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    Console.WriteLine("Неизвестный тип " + message.Type + "!!!");
+                    Console.ResetColor();
+                    SaveMessageToDatabase(text, userName, date);
+                }
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
-                if (message.Text != null)
-                {
-                    DateTime date = message.Date;
-                    long chatId = message.Chat.Id;
-                    string chatTitle = "Личные сообщения";
-                    string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+                DateTime date = message.Date;
+                long chatId = message.Chat.Id;
+                string chatTitle = "Личные сообщения";
+                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
 
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
-                    MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
-                }
+                await _client.SendTextMessageAsync(message.Chat.Id, $"Добавьте бота в группу, чтобы он сохранял все сообщения из неё");
+                MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
             }
             else
             {
-                if (message.Text != null)
-                {
-                    DateTime date = message.Date;
-                    long chatId = message.Chat.Id;
-                    string chatTitle = message.Chat.Title;
-                    string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+                DateTime date = message.Date;
+                long chatId = message.Chat.Id;
+                string chatTitle = message.Chat.Title;
+                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
 
-                    await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
-                    $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
-                    $"\nУдалите его из группы");
-                    MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
-                }               
+                await _client.SendTextMessageAsync(message.Chat.Id, $"К сожалению, данный бот создан только для служебного пользования, " +
+                $"но его исходный код можно посмотреть на гитхабе: https://github.com/Anton-Sleptsov/History-of-messages-bot.git " +
+                $"\nУдалите его из группы");
+                MakeLoggingIncomingMessages(date, chatId, chatTitle, userName);
             }
         }
 
-        private static void MakeLoggingIncomingMessages(DateTime date ,long chatId, string chatIitle, string userName)
+        private static void MakeLoggingIncomingMessages(DateTime date, long chatId, string chatIitle, string userName)
         {
             if (chatIitle == "Личные сообщения")
                 Console.WriteLine($"{date} Из чата номер {chatId} с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}," +
@@ -162,13 +195,13 @@ namespace History_of_messages_bot
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(DateTime.Now + " Запись добавлена в базу");
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("При записи в базу что-то пошло нет так, а именно " + ex.Message);
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
             }
             finally
             {
