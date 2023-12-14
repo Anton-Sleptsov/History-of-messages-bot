@@ -78,7 +78,15 @@ namespace History_of_messages_bot
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
-                }              
+                }
+                else if (message.Animation != null)
+                {
+                    string gif = message.Animation.FileName ?? message.Animation.FileId;
+                    string text = $"Гиф-изображение \"{gif}\"";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
