@@ -87,6 +87,14 @@ namespace History_of_messages_bot
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
                 }
+                else if (message.Audio != null)
+                {
+                    string audio = message.Audio.FileName ?? message.Audio.FileId;
+                    string text = $"Аудио-файл \"{audio}\"";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
