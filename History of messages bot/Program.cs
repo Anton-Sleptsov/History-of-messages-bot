@@ -3,6 +3,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Reflection.Metadata;
 
 namespace History_of_messages_bot
 {
@@ -89,7 +90,7 @@ namespace History_of_messages_bot
                 else if (message.Document != null)
                 {
                     string document = message.Document.FileName ?? message.Document.FileId;
-                    string text = $"Документ \"{document}\"";
+                    string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
@@ -105,7 +106,7 @@ namespace History_of_messages_bot
                 else if (message.Audio != null)
                 {
                     string audio = message.Audio.FileName ?? message.Audio.FileId;
-                    string text = $"Аудио-файл \"{audio}\"";
+                    string text = message.Caption != null ? $"Аудио-файл \"{audio}\" с текстом \"{message.Caption}\"" : $"Аудио-файл \"{audio}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
