@@ -47,13 +47,13 @@ namespace History_of_messages_bot
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine(DateTime.Now + " Выведено количество записей " + count);
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine($"Ошибка вывода количества записей: {ex.Message}");
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ResetColor();
             }
         }
 
@@ -87,18 +87,18 @@ namespace History_of_messages_bot
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
                 }
-                else if (message.Document != null)
-                {
-                    string document = message.Document.FileName ?? message.Document.FileId;
-                    string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
-                }
                 else if (message.Animation != null)
                 {
                     string gif = message.Animation.FileName ?? message.Animation.FileId;
                     string text = $"Гиф-изображение \"{gif}\"";
+
+                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
+                    SaveMessageToDatabase(text, userName, date);
+                }
+                else if (message.Document != null)
+                {
+                    string document = message.Document.FileName ?? message.Document.FileId;
+                    string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     SaveMessageToDatabase(text, userName, date);
