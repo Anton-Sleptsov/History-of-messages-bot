@@ -4,14 +4,15 @@ using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Reflection.Metadata;
+using File = System.IO.File;
 
 namespace History_of_messages_bot
 {
     internal class Program
     {
-        private static readonly string _token = "6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0"; //Бот @HistoryOfMessages_bot
+        private static readonly string _token = File.ReadAllText("token.txt"); //Бот 
         private static TelegramBotClient _client;
-        private static readonly long _chatId = -1002129394383; //Чат, в котором бот будет работать
+        private static readonly long _chatId = long.Parse(File.ReadAllText("chat.txt")); //Чат, в котором бот будет работать
 
         private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
