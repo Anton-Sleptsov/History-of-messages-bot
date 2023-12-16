@@ -24,6 +24,7 @@ namespace History_of_messages_bot
             _client = new TelegramBotClient(_token);
 
             _client.OnMessage += OnMessageHandler;
+            _client.OnMessageEdited += OnMessageHandler;
             _client.StartReceiving();
 
             // Запускаем поток для вывода количества записей каждый час
@@ -61,6 +62,7 @@ namespace History_of_messages_bot
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
+            int messageId = message.MessageId;
             if (message.Chat.Id == _chatId)
             {
                 DateTime date = message.Date;
@@ -72,21 +74,21 @@ namespace History_of_messages_bot
                     string text = message.Text;
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Sticker != null)
                 {
                     string text = $"Стикер \"{message.Sticker.Emoji}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Photo != null)
                 { 
                     string text = message.Caption != null ? $"Фоторафия с текстом \"{message.Caption}\"" : "Фотография";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Animation != null)
                 {
@@ -94,7 +96,7 @@ namespace History_of_messages_bot
                     string text = $"Гиф-изображение \"{gif}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Document != null)
                 {
@@ -102,7 +104,7 @@ namespace History_of_messages_bot
                     string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Audio != null)
                 {
@@ -110,21 +112,21 @@ namespace History_of_messages_bot
                     string text = message.Caption != null ? $"Аудио-файл \"{audio}\" с текстом \"{message.Caption}\"" : $"Аудио-файл \"{audio}\"";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.Voice != null)
                 {
                     string text = $"Голосовое сообщение длительностью: {message.Voice.Duration} сек.";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else if (message.VideoNote != null)
                 {
                     string text = $"Кружочек длительностью: {message.VideoNote.Duration} сек.";
 
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
                 else
                 {
@@ -134,7 +136,7 @@ namespace History_of_messages_bot
                     MakeLoggingIncomingMessages(date, groupTitle, userName, text);
                     Console.WriteLine("Неизвестный тип " + message.Type + "!!!");
                     Console.ResetColor();
-                    SaveMessageToDatabase(text, userName, date);
+                    SaveMessageToDatabase(messageId, text, userName, date);
                 }
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
@@ -177,20 +179,23 @@ namespace History_of_messages_bot
                   $" вот его текст \"{text}\"");
         }
 
-        private static void SaveMessageToDatabase(string text, string userName, DateTime date)
+        private static void SaveMessageToDatabase(int messageId ,string text, string userName, DateTime date, bool messageEdited = false)
         {
 
             try
             {
                 _connection.Open();
 
-                string query = "INSERT INTO History_in_group (Text, UserName, Date) VALUES (@Text, @UserName, @Date)";
+                string query = "INSERT INTO History_in_group (MessageId, Text, UserName, Date, MessageEdited) " +
+                    "VALUES (@MessageId, @Text, @UserName, @Date, @MessageEdited)";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
+                    command.Parameters.AddWithValue("@MessageId", messageId);
                     command.Parameters.AddWithValue("@Text", text);
                     command.Parameters.AddWithValue("@UserName", userName);
                     command.Parameters.AddWithValue("@Date", date);
+                    command.Parameters.AddWithValue("@MessageEdited", messageEdited);
 
                     command.ExecuteNonQuery();
                 }
