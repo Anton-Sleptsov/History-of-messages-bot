@@ -24,7 +24,7 @@ namespace History_of_messages_bot
             _client = new TelegramBotClient(_token);
 
             _client.OnMessage += OnMessageHandler;
-            _client.OnMessageEdited += OnMessageHandler;
+            _client.OnMessageEdited += OnMessageEditedHandler;
             _client.StartReceiving();
 
             // Запускаем поток для вывода количества записей каждый час
@@ -62,82 +62,9 @@ namespace History_of_messages_bot
         private static async void OnMessageHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            int messageId = message.MessageId;
             if (message.Chat.Id == _chatId)
             {
-                DateTime date = message.Date;
-                string groupTitle = message.Chat.Title;
-                string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
-
-                if (message.Text != null)
-                {
-                    string text = message.Text;
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Sticker != null)
-                {
-                    string text = $"Стикер \"{message.Sticker.Emoji}\"";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Photo != null)
-                { 
-                    string text = message.Caption != null ? $"Фоторафия с текстом \"{message.Caption}\"" : "Фотография";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Animation != null)
-                {
-                    string gif = message.Animation.FileName ?? message.Animation.FileId;
-                    string text = $"Гиф-изображение \"{gif}\"";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Document != null)
-                {
-                    string document = message.Document.FileName ?? message.Document.FileId;
-                    string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Audio != null)
-                {
-                    string audio = message.Audio.FileName ?? message.Audio.FileId;
-                    string text = message.Caption != null ? $"Аудио-файл \"{audio}\" с текстом \"{message.Caption}\"" : $"Аудио-файл \"{audio}\"";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.Voice != null)
-                {
-                    string text = $"Голосовое сообщение длительностью: {message.Voice.Duration} сек.";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else if (message.VideoNote != null)
-                {
-                    string text = $"Кружочек длительностью: {message.VideoNote.Duration} сек.";
-
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
-                else
-                {
-                    string text = $"Сообщение с неизвестным типом, а именно \"{message.Type}\"";
-
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    MakeLoggingIncomingMessages(date, groupTitle, userName, text);
-                    Console.WriteLine("Неизвестный тип " + message.Type + "!!!");
-                    Console.ResetColor();
-                    SaveMessageToDatabase(messageId, text, userName, date);
-                }
+                ProcessMessageFromChat(message, messageEdited: false);
             }
             else if (message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
             {
@@ -163,6 +90,90 @@ namespace History_of_messages_bot
             }
         }
 
+        private static void OnMessageEditedHandler(object? sender, MessageEventArgs e)
+        {
+            Message message = e.Message;
+            ProcessMessageFromChat(message, messageEdited: true);
+        }
+
+        private static async void ProcessMessageFromChat(Message message, bool messageEdited)
+        {
+            int messageId = message.MessageId;
+            DateTime date = message.Date;
+            string groupTitle = message.Chat.Title;
+            string userName = message.From.Username ?? (message.From.FirstName + " " + message.From.LastName).Trim();
+
+            if (message.Text != null)
+            {
+                string text = message.Text;
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Sticker != null)
+            {
+                string text = $"Стикер \"{message.Sticker.Emoji}\"";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Photo != null)
+            {
+                string text = message.Caption != null ? $"Фоторафия с текстом \"{message.Caption}\"" : "Фотография";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Animation != null)
+            {
+                string gif = message.Animation.FileName ?? message.Animation.FileId;
+                string text = $"Гиф-изображение \"{gif}\"";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Document != null)
+            {
+                string document = message.Document.FileName ?? message.Document.FileId;
+                string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Audio != null)
+            {
+                string audio = message.Audio.FileName ?? message.Audio.FileId;
+                string text = message.Caption != null ? $"Аудио-файл \"{audio}\" с текстом \"{message.Caption}\"" : $"Аудио-файл \"{audio}\"";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.Voice != null)
+            {
+                string text = $"Голосовое сообщение длительностью: {message.Voice.Duration} сек.";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else if (message.VideoNote != null)
+            {
+                string text = $"Кружочек длительностью: {message.VideoNote.Duration} сек.";
+
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+            else
+            {
+                string text = $"Сообщение с неизвестным типом, а именно \"{message.Type}\"";
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
+                Console.WriteLine("Неизвестный тип " + message.Type + "!!!");
+                Console.ResetColor();
+                SaveMessageToDatabase(messageId, text, userName, date);
+            }
+        }
+
         private static void MakeLoggingIncomingMessages(DateTime date, long chatId, string chatIitle, string userName)
         {
             if (chatIitle == "Личные сообщения")
@@ -173,13 +184,17 @@ namespace History_of_messages_bot
                                   $" была отправлена ссылка на гитхаб");
         }
 
-        private static void MakeLoggingIncomingMessages(DateTime date, string chatIitle, string userName, string text)
+        private static void MakeLoggingIncomingMessages(DateTime date, string chatIitle, string userName, string text, bool messageEdited)
         {
-            Console.WriteLine($"{date} Из рабочего чата с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
-                  $" вот его текст \"{text}\"");
+            if (!messageEdited)
+                Console.WriteLine($"{date} Из рабочего чата с названием \"{chatIitle}\" пришло сообщение от пользователя {userName}, " +
+                     $" вот его текст \"{text}\"");
+            else
+                Console.WriteLine($"{date} В рабочем чате с названием \"{chatIitle}\" было отредактировано сообщение от пользователя {userName}, " +
+                     $" вот его новый текст \"{text}\"");
         }
 
-        private static void SaveMessageToDatabase(int messageId ,string text, string userName, DateTime date, bool messageEdited = false)
+        private static void SaveMessageToDatabase(int messageId, string text, string userName, DateTime date, bool messageEdited = false)
         {
 
             try
