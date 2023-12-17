@@ -2,8 +2,6 @@
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using MySql.Data.MySqlClient;
-using Telegram.Bot.Types.ReplyMarkups;
-using System.Reflection.Metadata;
 using File = System.IO.File;
 
 namespace History_of_messages_bot
@@ -93,10 +91,38 @@ namespace History_of_messages_bot
         private static void OnMessageEditedHandler(object? sender, MessageEventArgs e)
         {
             Message message = e.Message;
-            ProcessMessageFromChat(message, messageEdited: true);
+            if (message.Chat.Id == _chatId)
+            {
+                int oroginalId = GetOriginalId(message.MessageId);
+                MarkOriginalMessage(oroginalId);
+                ProcessMessageFromChat(message, messageEdited: true, oroginalId);
+            }
         }
 
-        private static async void ProcessMessageFromChat(Message message, bool messageEdited)
+        private static int GetOriginalId(int messageId)
+        {
+            int originalId = -1;
+
+            try
+            {
+                _connection.Open();
+
+                string query = $"SELECT Id FROM History_in_group WHERE MessageId = @MessageId ORDER BY Id DESC LIMIT 1";
+
+                using (MySqlCommand command = new MySqlCommand(query, _connection))
+                {
+                    command.Parameters.AddWithValue("@MessageId", messageId);
+                    originalId = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+            finally
+            {
+                _connection.Close();
+            }
+            return originalId;
+        }
+
+        private static void ProcessMessageFromChat(Message message, bool messageEdited, int? originalId = null, bool MessageIsRelevant = true)
         {
             int messageId = message.MessageId;
             DateTime date = message.Date;
@@ -108,21 +134,21 @@ namespace History_of_messages_bot
                 string text = message.Text;
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Sticker != null)
             {
                 string text = $"Стикер \"{message.Sticker.Emoji}\"";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Photo != null)
             {
                 string text = message.Caption != null ? $"Фоторафия с текстом \"{message.Caption}\"" : "Фотография";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Animation != null)
             {
@@ -130,7 +156,7 @@ namespace History_of_messages_bot
                 string text = $"Гиф-изображение \"{gif}\"";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Document != null)
             {
@@ -138,7 +164,7 @@ namespace History_of_messages_bot
                 string text = message.Caption != null ? $"Документ \"{document}\" с текстом \"{message.Caption}\"" : $"Документ \"{document}\"";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Audio != null)
             {
@@ -146,21 +172,21 @@ namespace History_of_messages_bot
                 string text = message.Caption != null ? $"Аудио-файл \"{audio}\" с текстом \"{message.Caption}\"" : $"Аудио-файл \"{audio}\"";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.Voice != null)
             {
                 string text = $"Голосовое сообщение длительностью: {message.Voice.Duration} сек.";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else if (message.VideoNote != null)
             {
                 string text = $"Кружочек длительностью: {message.VideoNote.Duration} сек.";
 
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
             }
             else
             {
@@ -170,7 +196,28 @@ namespace History_of_messages_bot
                 MakeLoggingIncomingMessages(date, groupTitle, userName, text, messageEdited);
                 Console.WriteLine("Неизвестный тип " + message.Type + "!!!");
                 Console.ResetColor();
-                SaveMessageToDatabase(messageId, text, userName, date);
+                SaveMessageToDatabase(messageId, text, userName, date, MessageIsRelevant, originalId);
+            }
+        }
+
+        private static void MarkOriginalMessage(int originalId)
+        {
+            try
+            {
+                _connection.Open();
+
+                string query = "UPDATE History_in_group SET MessageIsRelevant = false WHERE Id = @OriginalId";
+
+                using (MySqlCommand command = new MySqlCommand(query, _connection))
+                {
+                    command.Parameters.AddWithValue("@OriginalId", originalId);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
 
@@ -194,15 +241,15 @@ namespace History_of_messages_bot
                      $" вот его новый текст \"{text}\"");
         }
 
-        private static void SaveMessageToDatabase(int messageId, string text, string userName, DateTime date, bool messageEdited = false)
+        private static void SaveMessageToDatabase(int messageId, string text, string userName, DateTime date, bool messageIsRelevant, int? originalId = null)
         {
 
             try
             {
                 _connection.Open();
 
-                string query = "INSERT INTO History_in_group (MessageId, Text, UserName, Date, MessageEdited) " +
-                    "VALUES (@MessageId, @Text, @UserName, @Date, @MessageEdited)";
+                string query = "INSERT INTO History_in_group (MessageId, Text, UserName, Date, MessageIsRelevant, OriginalId) " +
+                    "VALUES (@MessageId, @Text, @UserName, @Date, @MessageIsRelevant, @OriginalId)";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
@@ -210,7 +257,8 @@ namespace History_of_messages_bot
                     command.Parameters.AddWithValue("@Text", text);
                     command.Parameters.AddWithValue("@UserName", userName);
                     command.Parameters.AddWithValue("@Date", date);
-                    command.Parameters.AddWithValue("@MessageEdited", messageEdited);
+                    command.Parameters.AddWithValue("@MessageIsRelevant", messageIsRelevant);
+                    command.Parameters.AddWithValue("@OriginalId", originalId);
 
                     command.ExecuteNonQuery();
                 }
