@@ -256,7 +256,7 @@ namespace History_of_messages_bot
         static bool TableExists()
         {
             try
-            { 
+            {
                 _connection.Open();
 
                 using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'History_of_messages' AND table_name = {_tableName}", _connection))
@@ -266,6 +266,45 @@ namespace History_of_messages_bot
                     else
                         return false;
                 }
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
+        static void CreateTable()
+        {
+            try
+            {
+                _connection.Open();
+
+                string query = $@"CREATE TABLE IF NOT EXISTS `{_tableName}` (
+                                    `{Columns.Id}` INT(11) AUTO_INCREMENT PRIMARY KEY,
+                                    `{Columns.MessageId}` INT(11) NOT NULL,
+                                    `{Columns.Text}` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                                    `{Columns.UserName}` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                                    `{Columns.Date}` DATETIME NOT NULL,
+                                    `{Columns.MessageIsRelevant}` BOOLEAN NOT NULL,
+                                    `{Columns.OriginalId}` INT(11) NULL,
+                                    FOREIGN KEY (`{Columns.OriginalId}`) REFERENCES `{_tableName}`(`{Columns.Id}`)
+                                ) DEFAULT CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+                using (MySqlCommand command = new MySqlCommand(query, _connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Таблица {_tableName} успешно создана.");
+                Console.ResetColor();
+
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Ошибка при создании таблицы: {ex.Message}");
+                Console.ResetColor();
             }
             finally
             {
