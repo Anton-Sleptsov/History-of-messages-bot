@@ -54,6 +54,11 @@ namespace History_of_messages_bot
         {
             try
             {
+                if (!TableExists())
+                {
+                    CreateTable();
+                }
+
                 int count = GetNumberOfRecords();
                 await _client.SendTextMessageAsync(_chatId, $"Количество записей в базе на данный момент - \"{count}\"");
 
@@ -259,7 +264,7 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'History_of_messages' AND table_name = {_tableName}", _connection))
+                using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'History_of_messages' AND table_name = '{_tableName}'", _connection))
                 {
                     if (Convert.ToInt32(command.ExecuteScalar()) == 1)
                         return true;
@@ -314,6 +319,10 @@ namespace History_of_messages_bot
 
         private static void SaveMessageToDatabase(int messageId, string text, string userName, DateTime date, bool messageIsRelevant, int? originalId = null)
         {
+            if (!TableExists())
+            {
+                CreateTable();
+            }
 
             try
             {
