@@ -16,7 +16,7 @@ namespace History_of_messages_bot
            "database=History_of_messages");
 
         private static readonly string _tableName = "History_in_group";
-        enum Columns
+        private enum Columns
         {
             Id,
             MessageId,
@@ -258,7 +258,7 @@ namespace History_of_messages_bot
                      $" вот его новый текст \"{text}\"");
         }
 
-        static bool TableExists()
+        private static bool TableExists()
         {
             try
             {
@@ -278,7 +278,7 @@ namespace History_of_messages_bot
             }
         }
 
-        static void CreateTable()
+        private static void CreateTable()
         {
             try
             {
