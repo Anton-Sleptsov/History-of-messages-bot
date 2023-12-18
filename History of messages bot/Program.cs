@@ -43,7 +43,7 @@ namespace History_of_messages_bot
                 while (true)
                 {
                     DisplayNumberOfRecords();
-                    Thread.Sleep(1000 * 60 * 5);
+                    Thread.Sleep(1000 * 60 * 60);
                 }
             }, TaskCreationOptions.LongRunning);
 
