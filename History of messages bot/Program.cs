@@ -253,6 +253,26 @@ namespace History_of_messages_bot
                      $" вот его новый текст \"{text}\"");
         }
 
+        static bool TableExists()
+        {
+            try
+            { 
+                _connection.Open();
+
+                using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'History_of_messages' AND table_name = {_tableName}", _connection))
+                {
+                    if (Convert.ToInt32(command.ExecuteScalar()) == 1)
+                        return true;
+                    else
+                        return false;
+                }
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
         private static void SaveMessageToDatabase(int messageId, string text, string userName, DateTime date, bool messageIsRelevant, int? originalId = null)
         {
 
