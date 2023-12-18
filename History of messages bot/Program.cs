@@ -15,6 +15,18 @@ namespace History_of_messages_bot
         private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
            "database=History_of_messages");
 
+        private static readonly string _tableName = "History_in_group";
+        enum Columns
+        {
+            Id,
+            MessageId,
+            Text,
+            UserName,
+            Date,
+            MessageIsRelevant,
+            OriginalId
+        }
+
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.Unicode;
@@ -107,7 +119,7 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                string query = $"SELECT Id FROM History_in_group WHERE MessageId = @MessageId ORDER BY Id DESC LIMIT 1";
+                string query = $"SELECT Id FROM {_tableName} WHERE {Columns.MessageId} = @MessageId ORDER BY Id DESC LIMIT 1";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
@@ -206,7 +218,7 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                string query = "UPDATE History_in_group SET MessageIsRelevant = false WHERE Id = @OriginalId";
+                string query = $"UPDATE {_tableName} SET {Columns.MessageIsRelevant} = false WHERE {Columns.Id} = @OriginalId";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
@@ -248,7 +260,8 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                string query = "INSERT INTO History_in_group (MessageId, Text, UserName, Date, MessageIsRelevant, OriginalId) " +
+                string query = $"INSERT INTO {_tableName} ({Columns.MessageId}, {Columns.Text}, {Columns.UserName}, " +
+                    $"{Columns.Date}, {Columns.MessageIsRelevant}, {Columns.OriginalId}) " +
                     "VALUES (@MessageId, @Text, @UserName, @Date, @MessageIsRelevant, @OriginalId)";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
@@ -287,7 +300,7 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                string query = $"SELECT COUNT(*) FROM History_in_group";
+                string query = $"SELECT COUNT(*) FROM {_tableName}";
 
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
