@@ -10,12 +10,12 @@ namespace History_of_messages_bot
     {
         private static readonly string _token = File.ReadAllText("token.txt"); //Бот 
         private static TelegramBotClient _client;
+
         private static readonly long _chatId = long.Parse(File.ReadAllText("chat.txt")); //Чат, в котором бот будет работать
 
-        private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;" +
-           "database=History_of_messages");
-
+        private static readonly MySqlConnection _connection = new MySqlConnection(File.ReadAllText("connectionDB.txt")); //База, где будут храниться сообщения
         private static readonly string _tableName = "History_in_group";
+
         private enum Columns
         {
             Id,
