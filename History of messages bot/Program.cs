@@ -14,6 +14,7 @@ namespace History_of_messages_bot
         private static readonly long _chatId = long.Parse(File.ReadAllText("chat.txt")); //Чат, в котором бот будет работать
 
         private static readonly MySqlConnection _connection = new MySqlConnection(File.ReadAllText("connectionDB.txt")); //База, где будут храниться сообщения
+        private static readonly string _databaseName = "History_of_messages";
         private static readonly string _tableName = "History_in_group";
 
         private enum Columns
@@ -283,7 +284,7 @@ namespace History_of_messages_bot
             {
                 _connection.Open();
 
-                using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'History_of_messages' AND table_name = '{_tableName}'", _connection))
+                using (MySqlCommand command = new MySqlCommand($"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '{_databaseName}' AND table_name = '{_tableName}'", _connection))
                 {
                     if (Convert.ToInt32(command.ExecuteScalar()) == 1)
                         return true;
