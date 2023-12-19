@@ -13,9 +13,21 @@ namespace History_of_messages_bot
 
         private static readonly long _chatId = long.Parse(File.ReadAllText("chat.txt")); //Чат, в котором бот будет работать
 
-        private static readonly MySqlConnection _connection = new MySqlConnection(File.ReadAllText("connectionDB.txt")); //База, где будут храниться сообщения
-        private static readonly string _databaseName = "History_of_messages";
+        private static readonly string _connectionString = File.ReadAllText("connectionDB.txt");
+        private static readonly MySqlConnection _connection = new MySqlConnection(_connectionString); //База, где будут храниться сообщения
+        private static readonly string _databaseName = GetDatabaseName(_connectionString);
         private static readonly string _tableName = "History_in_group";
+
+        private static string GetDatabaseName(string connectionString)
+        {
+            string databaseName = "";
+            int lastIndex = connectionString.LastIndexOf("database=");
+            if (lastIndex != -1)
+            {
+                databaseName = connectionString.Substring(lastIndex + "database=".Length).Trim(';');
+            }
+            return databaseName;
+        }
 
         private enum Columns
         {
