@@ -132,6 +132,12 @@ namespace History_of_messages_bot
                     originalId = Convert.ToInt32(command.ExecuteScalar());
                 }
             }
+            catch (Exception ex) 
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Не удалось получить id оригинального сообщения по причине " + ex.Message);
+                Console.ResetColor();
+            }
             finally
             {
                 _connection.Close();
@@ -232,6 +238,12 @@ namespace History_of_messages_bot
                     command.ExecuteNonQuery();
                 }
             }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Не удалось отметить оригинальное сообщение неактуальным по причине " + ex.Message);
+                Console.ResetColor();
+            }
             finally
             {
                 _connection.Close();
@@ -271,6 +283,13 @@ namespace History_of_messages_bot
                     else
                         return false;
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Не удалось проверить, существует ли таблица по причине " + ex.Message);
+                Console.ResetColor();
+                return false;
             }
             finally
             {
