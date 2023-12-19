@@ -111,14 +111,21 @@ namespace History_of_messages_bot
             if (message.Chat.Id == _chatId)
             {
                 int oroginalId = GetOriginalId(message.MessageId);
-                MarkOriginalMessage(oroginalId);
-                ProcessMessageFromChat(message, messageEdited: true, oroginalId);
+                if (oroginalId == 0)
+                {
+                    ProcessMessageFromChat(message, messageEdited: false);
+                }
+                else
+                {
+                    MarkOriginalMessage(oroginalId);
+                    ProcessMessageFromChat(message, messageEdited: true, oroginalId);
+                }
             }
         }
 
         private static int GetOriginalId(int messageId)
         {
-            int originalId = -1;
+            int originalId = 0;
 
             try
             {
