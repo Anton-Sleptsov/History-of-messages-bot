@@ -1,0 +1,52 @@
+﻿@model List<Message>
+
+    <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>MessageId</th>
+            <th>Text</th>
+            <th>User Name</th>
+            <th>Date</th>
+            <th>MessageIsRelevant</th>
+            <th>OriginalId</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entity in Model)
+        {
+            <tr>
+                <td>@entity.Id</td>
+                <td>@entity.MessageId</td>
+                <td>@entity.Text</td>
+                <td>@entity.UserName</td>
+                <td>@entity.Date</td>
+                @if (entity.MessageIsRelevant)
+                {
+                    <td>Да</td>
+                }
+                else
+                {                  
+                    <td>Нет</td>
+                }
+                <td>@entity.OriginalId</td>
+            </tr>
+        }
+    </tbody>
+</table>
