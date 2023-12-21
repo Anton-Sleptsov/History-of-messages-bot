@@ -14,18 +14,19 @@
 
     th {
         background-color: #f2f2f2;
+        text-align: center;
     }
 </style>
 <table>
     <thead>
         <tr>
-            <th>Id</th>
-            <th>MessageId</th>
-            <th>Text</th>
-            <th>User Name</th>
-            <th>Date</th>
-            <th>MessageIsRelevant</th>
-            <th>OriginalId</th>
+            <th>Номер записи</th>
+            <th>Номер сообщения</th>
+            <th>Текст сообщения</th>
+            <th>Имя пользователя</th>
+            <th>Дата</th>
+            <th>Сообщение актуально</th>
+            <th>Номер оригинального сообщения</th>
         </tr>
     </thead>
     <tbody>
@@ -39,11 +40,11 @@
                 <td>@entity.Date</td>
                 @if (entity.MessageIsRelevant)
                 {
-                    <td>Да</td>
+                    <td style="text-align:center; color:green">Да</td>
                 }
                 else
-                {                  
-                    <td>Нет</td>
+                {
+                    <td style="text-align:center; color:red">Нет</td>
                 }
                 <td>@entity.OriginalId</td>
             </tr>
