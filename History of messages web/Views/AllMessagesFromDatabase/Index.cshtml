@@ -16,6 +16,10 @@
         background-color: #f2f2f2;
         text-align: center;
     }
+
+    .id {
+        text-align: center;
+    }
 </style>
 <table>
     <thead>
@@ -33,8 +37,8 @@
         @foreach (var entity in Model)
         {
             <tr>
-                <td>@entity.Id</td>
-                <td>@entity.MessageId</td>
+                <td class="id">@entity.Id</td>
+                <td class="id">@entity.MessageId</td>
                 <td>@entity.Text</td>
                 <td>@entity.UserName</td>
                 <td>@entity.Date</td>
@@ -46,7 +50,7 @@
                 {
                     <td style="text-align:center; color:red">Нет</td>
                 }
-                <td>@entity.OriginalId</td>
+                <td class="id">@entity.OriginalId</td>
             </tr>
         }
     </tbody>
