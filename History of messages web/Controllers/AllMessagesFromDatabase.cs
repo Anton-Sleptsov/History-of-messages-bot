@@ -1,5 +1,4 @@
 ﻿using History_of_messages_web.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -9,13 +8,12 @@ namespace History_of_messages_web.Controllers
 {
     public class AllMessagesFromDatabase : Controller
     {
-        private static readonly MySqlConnection _connection = new MySqlConnection("server=localhost;port=3306;username=root;password=;database=History_of_messages");
-        private static readonly string _tableName = "History_in_group";
+        private static readonly MySqlConnection _connection = new MySqlConnection(System.IO.File.ReadAllText("..\\configs\\connectionDB.txt"));
+        private static readonly string _tableName = System.IO.File.ReadAllText("..\\configs\\table.txt");
         List<Message> messages = new();
 
         public IActionResult Index()
         {
-
             try
             {
                 _connection.Open();
@@ -65,8 +63,8 @@ namespace History_of_messages_web.Controllers
 
         private async void SendMessage(int messageId, string text)
         {
-            var botClient = new TelegramBotClient("6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0");
-            long chatId = -1002004508817;
+            var botClient = new TelegramBotClient(System.IO.File.ReadAllText("..\\configs\\token.txt"));
+            long chatId = long.Parse(System.IO.File.ReadAllText("..\\configs\\chat.txt"));
 
             await botClient.SendTextMessageAsync(chatId, text, replyToMessageId: messageId);
         }

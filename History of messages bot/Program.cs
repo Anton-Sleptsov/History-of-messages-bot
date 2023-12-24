@@ -8,15 +8,15 @@ namespace History_of_messages_bot
 {
     internal class Program
     {
-        private static readonly string _token = File.ReadAllText("token.txt"); //Бот 
+        private static readonly string _token = File.ReadAllText("..\\..\\..\\..\\configs\\token.txt"); //Бот 
         private static TelegramBotClient _client;
 
-        private static readonly long _chatId = long.Parse(File.ReadAllText("chat.txt")); //Чат, в котором бот будет работать
+        private static readonly long _chatId = long.Parse(File.ReadAllText("..\\..\\..\\..\\configs\\chat.txt")); //Чат, в котором бот будет работать
 
-        private static readonly string _connectionString = File.ReadAllText("connectionDB.txt");
+        private static readonly string _connectionString = File.ReadAllText("..\\..\\..\\..\\configs\\connectionDB.txt");
         private static readonly MySqlConnection _connection = new MySqlConnection(_connectionString); //База, где будут храниться сообщения
         private static readonly string _databaseName = GetDatabaseName(_connectionString);
-        private static readonly string _tableName = "History_in_group";
+        private static readonly string _tableName = File.ReadAllText("..\\..\\..\\..\\configs\\table.txt");
 
         private static string GetDatabaseName(string connectionString)
         {
