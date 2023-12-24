@@ -54,6 +54,14 @@ namespace History_of_messages_web.Controllers
             return View(messages);
         }
 
+        [HttpPost]
+        public ActionResult MyButton_Click(int entityId, string inputValue)
+        {
+
+
+            return RedirectToAction("Index"); 
+        }
+
         private void FillList(List<Message> messages, MySqlCommand command)
         {
             using (MySqlDataReader reader = command.ExecuteReader())
