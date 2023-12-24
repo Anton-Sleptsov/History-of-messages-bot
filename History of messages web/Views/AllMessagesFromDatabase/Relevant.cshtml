@@ -56,39 +56,12 @@
                 <td>@entity.UserName</td>
                 <td>@entity.Date</td>
                 <td>
-                    <input id="inputValue" placeholder="Введите текст">
-                    <button type="button" onclick="sendDataToServer(@entity.MessageId)">Отправить</button>
-                    <input type="hidden" id="entityId" value="@entity.MessageId">
+                    <form method="post" action="@Url.Action("MyButton_Click", "AllMessagesFromDatabase")">
+                        <input name="inputValue" placeholder="Введите текст">
+                        <button type="submit" name="id" value="@entity.MessageId">Отправить</button>
+                    </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-<script>
-    function sendDataToServer(entityId) {
-        // Получите значение из input
-        const inputValue = document.getElementById('inputValue').value;
-
-        // Получите значение entity.MessageId из скрытого input
-        const entityIdValue = document.getElementById('entityId').value;
-
-        // Выполните AJAX-запрос на сервер
-        $.ajax({
-            type: 'POST',
-            url: '/AllMessagesFromDatabase/MyButton_Click',
-            data: {
-                entityId: entityIdValue,
-                inputValue: inputValue
-            },
-            success: function (response) {
-                // Обработка успешного ответа от сервера
-                console.log(response);
-            },
-            error: function (error) {
-                // Обработка ошибки
-                console.error(error);
-            }
-        });
-    }
-</script>

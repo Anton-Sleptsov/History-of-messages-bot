@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
 using System.Data;
+using Telegram.Bot;
 
 namespace History_of_messages_web.Controllers
 {
@@ -40,7 +41,7 @@ namespace History_of_messages_web.Controllers
             {
                 _connection.Open();
 
-                string query = $"SELECT * FROM `{_tableName}` WHERE `MessageIsRelevant` = true ORDER BY `Date`";
+                string query = $"SELECT * FROM `{_tableName}` WHERE `MessageIsRelevant` = true ORDER BY `Date` DESC";
                 using (MySqlCommand command = new MySqlCommand(query, _connection))
                 {
                     FillList(messages, command);
@@ -55,11 +56,19 @@ namespace History_of_messages_web.Controllers
         }
 
         [HttpPost]
-        public ActionResult MyButton_Click(int entityId, string inputValue)
+        public ActionResult MyButton_Click(int Id, string inputValue)
         {
-
+            SendMessage(Id, inputValue);
 
             return RedirectToAction("Index"); 
+        }
+
+        private async void SendMessage(int messageId, string text)
+        {
+            var botClient = new TelegramBotClient("6351710759:AAFcfAOI0pATZc3s4ggHdOUw3wnaRmSNKO0");
+            long chatId = -1002004508817;
+
+            await botClient.SendTextMessageAsync(chatId, text, replyToMessageId: messageId);
         }
 
         private void FillList(List<Message> messages, MySqlCommand command)
