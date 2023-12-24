@@ -27,6 +27,14 @@
         font-weight: 400;
         margin-bottom: 30px;
     }
+
+    input {
+        border-radius: 10%;
+    }
+
+    button {
+        border-radius: 10%;
+    }
 </style>
 <h1>Актуальные сообщения</h1>
 <table>
@@ -36,6 +44,7 @@
             <th>Текст сообщения</th>
             <th>Имя пользователя</th>
             <th>Дата</th>
+            <th>Ответить на сообщение</th>
         </tr>
     </thead>
     <tbody>
@@ -46,6 +55,10 @@
                 <td>@entity.Text</td>
                 <td>@entity.UserName</td>
                 <td>@entity.Date</td>
+                <td>
+                    <input type="text" placeholder="Введите сообщение">
+                    <button>Отправить</button>
+                </td>
             </tr>
         }
     </tbody>
