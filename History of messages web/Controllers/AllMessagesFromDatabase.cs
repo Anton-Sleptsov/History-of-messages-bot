@@ -60,7 +60,7 @@ namespace History_of_messages_web.Controllers
         {
             SendMessage(Id, inputValue);
 
-            return RedirectToAction("Index"); 
+            return RedirectToAction("Relevant"); 
         }
 
         private async void SendMessage(int messageId, string text)
