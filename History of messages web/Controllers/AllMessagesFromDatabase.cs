@@ -24,6 +24,10 @@ namespace History_of_messages_web.Controllers
                    FillList(messages, command);
                 }
             }
+            catch
+            {
+                return RedirectToAction("ConnectionError");
+            }
             finally 
             { 
                 _connection.Close(); 
@@ -45,12 +49,21 @@ namespace History_of_messages_web.Controllers
                     FillList(messages, command);
                 }
             }
+            catch
+            {
+                return RedirectToAction("ConnectionError");
+            }
             finally
             {
                 _connection.Close();
             }
 
             return View(messages);
+        }
+
+        public IActionResult ConnectionError()
+        {
+            return View();
         }
 
         [HttpPost]
@@ -67,7 +80,15 @@ namespace History_of_messages_web.Controllers
             var botClient = new TelegramBotClient(System.IO.File.ReadAllText("..\\configs\\token.txt"));
             long chatId = long.Parse(System.IO.File.ReadAllText("..\\configs\\chat.txt"));
 
-            await botClient.SendTextMessageAsync(chatId, text, replyToMessageId: messageId);
+            try
+            {
+                await botClient.SendTextMessageAsync(chatId, text, replyToMessageId: messageId);
+            }
+            catch
+            {
+                return;
+            }
+            
         }
 
         private void FillList(List<Message> messages, MySqlCommand command)
