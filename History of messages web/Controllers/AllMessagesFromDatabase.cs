@@ -56,7 +56,8 @@ namespace History_of_messages_web.Controllers
         [HttpPost]
         public ActionResult MyButton_Click(int Id, string inputValue)
         {
-            SendMessage(Id, inputValue);
+            if(inputValue != null)
+                SendMessage(Id, inputValue);
 
             return RedirectToAction("Relevant"); 
         }
